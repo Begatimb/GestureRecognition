@@ -8,7 +8,7 @@ class Predict:
     """
     Data cleaning and preprocessing
     """
-    def __init__(self,):
+    def __init__(self):
         print("Initialized Processinf")
 
     def execute(self,prepro_input,drivePath):
