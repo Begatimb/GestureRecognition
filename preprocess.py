@@ -2,29 +2,21 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from keras.utils import to_categorical
 import numpy as np
 import pandas as pd
+import json
 
 class Preprocess:
     """
     Data cleaning and preprocessing
     """
-    def __init__(self):
-        print("Initialized Processing")
-
-    def execute(self,input_df,drivePath):
+    def __init__(self, input_df, drivePath, remove_cols):
         self.input_df = input_df
         self.drivePath = drivePath
+        self.remove_o = remove_cols
+        print("Initialized Processing")
 
+    def execute(self):
         # a list of body joints to remove from openpose
-        self.remove_o = ['REye', 'LEye', 'LEar', 'REar', 'RKnee', 'RAnkle', 'LKnee', 'LAnkle', 'LBigToe', 'LSmallToe',
-                    'LHeel', 'RBigToe', 'RSmallToe', 'RHeel', 'Face0', 'Face1', 'Face2', 'Face3', 'Face4', 'Face5',
-                    'Face6', 'Face7', 'Face8', 'Face9', 'Face10', 'Face11', 'Face12', 'Face13', 'Face14', 'Face15',
-                    'Face16', 'Face17', 'Face18', 'Face19', 'Face20', 'Face21', 'Face22', 'Face23', 'Face24', 'Face25',
-                    'Face26', 'Face27', 'Face28', 'Face29', 'Face30', 'Face31', 'Face32', 'Face33', 'Face34', 'Face35',
-                    'Face36', 'Face37', 'Face38', 'Face39', 'Face40', 'Face41', 'Face42', 'Face43', 'Face44', 'Face45',
-                    'Face46', 'Face47', 'Face48', 'Face49', 'Face50', 'Face51', 'Face52', 'Face53', 'Face54', 'Face55',
-                    'Face56', 'Face57', 'Face58', 'Face59', 'Face60', 'Face61', 'Face62', 'Face63', 'Face64', 'Face65',
-                    'Face66', 'Face67', 'Face68', 'Face69', 'Neck', 'RShoulder', 'RElbow', 'RWrist', 'LShoulder', 'LElbow',
-                    'LWrist', 'MidHip', 'RHip', 'LHip', 'Nose']
+
 
         # Get indexes of columns to keep, and split X and Y
         self.openpose_x_columns = []
@@ -49,5 +41,5 @@ class Preprocess:
         self.prepro_input = scaler.fit_transform(self.concat_input.reshape(494,84))
         self.prepro_input = self.prepro_input.reshape(1,494,42,2)
 
-        self.p_labels = np.load('{}p_labels.npy'.format(drivePath))
+        self.p_labels = np.load('{}p_labels.npy'.format(self.drivePath))
 
