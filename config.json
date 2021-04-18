@@ -1,4 +1,4 @@
-{
+{ "model": "weights.4CNN no LSTM_optimizer-<keras.optimizers.Adamax object at 0x7fa9481bc5d0>_filtersize-64_activ2d-tanh_activ3dtanh.hdf5",
   "remove_columns": [
     "REye",
     "LEye",
