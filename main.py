@@ -1,36 +1,49 @@
 import pandas as pd
 from preprocess import Preprocess
 from predict import Predict
-from load_json import load_json
-
+from pose_estimation import PoseEstimation
 import os
+from load_json import load_json
+import matplotlib.pyplot as plt
+import cv2 as cv
+config = load_json('config.json')
+
+
+# Input
 label = 'toothbrush'
 file = 'N16001_2201807281037223902.csv'
-
-config = load_json('config.json')
 drivePath = 'Thesis/'
-o_ex = pd.read_csv('Thesis/nemo_openpose/{}/{}'.format(label,file), sep=';')
 
-# Input example
-start = 0
-end = 200
-for i in range(494-200):
-    o_ex = pd.read_csv('Thesis/nemo_openpose/{}/{}'.format(label,file), sep=';')[start:end]
+im = cv.imread('image.jpeg')
 
-    preprocess = Preprocess(input_df=o_ex,
+"""
+# Extract Pose Estimations using OpenPose and OpenCV
+pose = PoseEstimation()
+estimated_img = pose.pose_estimation(im)
+plt.imshow(estimated_img)
+plt.show()
+"""
+
+# Preprocess Pose Estimations for Gesture Classification
+for f in os.listdir('Thesis/lowlands_openpose/{}/'.format(label)):
+    o_ex = pd.read_csv('Thesis/lowlands_openpose/{}/{}'.format(label, f), sep=';')[:494]
+    prepro = Preprocess(input_df=o_ex,
                         drivePath = drivePath,
-                        remove_cols = config['remove_columns'])
-    preprocess.execute()
+                        keepcols = list(config['BODY_PARTS'].keys()))
+    prepro.execute()
+    prepro_input = prepro.prepro_input
 
-
-    prepro_input = preprocess.prepro_input
 
     # Predict Label from preprocessed input
     predict = Predict(prepro_input= prepro_input,
                 drivePath=drivePath,
                 model_weights=config['model'])
     predict.execute()
-    end+=1
+
+
+#todo: check frame size of videos on gdrive
+
+#todo: restart on idlenes when switched to live
 
 
 
