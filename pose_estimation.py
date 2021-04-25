@@ -1,12 +1,15 @@
 from load_json import load_json
 import cv2 as cv
+
 config = load_json('config.json')
 net = cv.dnn.readNetFromTensorflow("graph_opt.pb")
 
+
 class PoseEstimation:
     """
-    Pose Estimation
+    Returns Upper Body pose estimations from openPose
     """
+
     def __init__(self):
         self.thr = config['thr']
         self.width = config['width']
@@ -15,31 +18,34 @@ class PoseEstimation:
         self.inHeight = self.height
         self.BODY_PARTS = config['BODY_PARTS']
 
+    def pose_estimation(self, frame):
+        frame_width = frame.shape[1]
+        frame_height = frame.shape[0]
+        net.setInput(cv.dnn.blobFromImage(frame,
+                                          1.0,
+                                          (self.inWidth, self.inHeight),
+                                          (127.5, 127.5, 127.5),
+                                          swapRB=True,
+                                          crop=False))
+        out_raw = net.forward()
+        out = out_raw[:, :19, :, :]
+        body_part_indices = list(self.BODY_PARTS.values())
 
-    def pose_estimation(self,frame):
-        self.frameWidth = frame.shape[1]
-        self.frameHeight = frame.shape[0]
-        net.setInput(cv.dnn.blobFromImage(frame, 1.0, (self.inWidth, self.inHeight), (127.5, 127.5, 127.5), swapRB=True, crop=False))
-        self.out_raw = net.forward()
-        self.out = self.out_raw[:, :19, :, :]
-        self.bodyPartIndices = list(self.BODY_PARTS.values())
-
-
-        self.points = []
-        for i in self.bodyPartIndices:
-
+        points = []
+        for i in body_part_indices:
             # Slice heatmap of corresponding body's part.
-            self.heatMap = self.out[0, i, :, :]
+            heatmap = out[0, i, :, :]
 
-            _, self.conf, _, self.point = cv.minMaxLoc(self.heatMap)
-            self.x = (self.frameWidth * self.point[0]) / self.out.shape[3]
-            self.y = (self.frameHeight * self.point[1]) / self.out.shape[2]
+            _, conf, _, point = cv.minMaxLoc(heatmap)
+            x = (frame_width * point[0]) / out.shape[3]
+            y = (frame_height * point[1]) / out.shape[2]
             # Add a point if it's confidence is higher than threshold.
-            self.points.append((int(self.x), int(self.y)) if self.conf > self.thr else None)
+            points.append((int(x), int(y)) if conf > self.thr else None)
 
-        for p in self.points:
+        for p in points:
             cv.ellipse(frame, p, (3, 3), 0, 0, 360, (0, 0, 255), cv.FILLED)
             cv.ellipse(frame, p, (3, 3), 0, 0, 360, (0, 0, 255), cv.FILLED)
 
-        self.t, _ = net.getPerfProfile()
-        self.freq = cv.getTickFrequency() / 1000
+        t, _ = net.getPerfProfile()
+
+        return points
